@@ -1,0 +1,60 @@
+\section{Introduction}
+Decision making is increasingly data-driven and this has driven an immense research interest in support of large scale analytical query processing.
+However, large datasets can be prone to error [cite], and data cleaning has been studied to mitigate query error on dirty data [cite].
+When querying dirty data, the speed of the query processing engine does not matter if the results are questionable.
+In many cases, data cleaning is one of the most expensive and crucial steps in a data analysis workflow.
+Cleaning and transforming data is the often first step \emph{before} any analysis such as machine learning can even begin.
+
+Unfortunately, separating signal from noise is a difficult and very domain specific task.
+Furthermore, a typical use case often requires a sequence of multiple data cleaning operations 
+such as imputation, string formatting, \emph{and} record linkage.
+We call these sequences of data cleaning operations \emph{pipelines}, and in this paper, we aim to study the robustness of these pipelines.
+
+The key difficulty in reasoning about this problem is that all of thse operations are in effect heuristics with some precision and recall characteristics.
+Pipelining heuristic operations is by nature an uncertain process; drawing a stark contrast with this problem and traditional query optimization where correctness can be formalized in terms of confluence or serializability [cite]. 
+In practice, in SampleClean [cite], we found that pipelines were very \emph{brittle} and changes in the order-of-operations or small tweaks of the operations had very significant impact on results.
+Users had to specific these operations and their ordering very precisely, which is in opposition to a goal of declarative data cleaning.
+
+To make this challenge more concrete, consider the following scenario. 
+Suppose we want to count the number of Mediterranian restaurants in Berkeley, and 
+our dataset is of the following schema: \textbf{Restaurant(Name, Type, City)}.
+This dataset contains duplicates (two records that point to the same real world entity) and missing type labels.
+To fill in the missing type labels we can train a classifier on those labels that do exist and predict a label from the features of the restaurant name.
+To address the deduplication problem, we can apply a variety of heuristics to merge similar entities [cite].
+However, we immediately hit an order of operations issues: which should we run first deduplication or labeling.
+On one hand, deduplication-first reduces the number of labels needed to be predicted and noise in the datset, on the other hand labels might be a valuable feature for deduplication.
+
+We focus our study on an important subclass of data cleaning problems: entity resolution (ER) [cite]. 
+In these problems, for every record we want to find a single canonical mapping between the records and the real world.
+Formally, every record in the clean relation $R_c$ there is a one-to-one mapping with some real world entity.
+This requires merging duplicate records that map to the same entity, fixing the attributes of the record so they accurately reflect the entity, and accurately filling in missing attributes.
+
+In a heuristic ER algorithm one of the biggest challenges is transitivity errors.
+Our heuristic might detect that A and C are the same, B and C are the same, but not A and B.
+\[ A = C, B = C, A \ne B\]
+For example, New York could be mapped to NY and New York City, but our heuristics could not figure out that New York City mapped to NY.
+These errors can be compounded if there is a sequence of pre-processing steps that are transforming the records, especially if the pre-processing steps affect different records in very different ways.
+This is a fundemental limitation of pipelining heuristic operators in tasks like ER.
+Errors tend to propagate down the pipeline, and when we lack ground truth as often is the case it is unclear how to optimize these pipelines.
+
+When we design data cleaning algorithms, we tend to design them conservatively; that is do not make a change unless confidence is high.
+In this paper, we look at this problem from a different perspective, namely safe ways for algorithms to clean even when confidence in those changes are low.
+There are two key challenges: (1) designing an API that allows data cleaning algorithms to expose internal state and present uncertain results, and (2) coping with the additional variance caused by more aggressive data cleaning.
+\reminder{TODO add some stuff about correlation clustering}
+In (1), we design an API that separates execution from proposing changes. 
+Algorithms are allowed to propose even conflicting suggestions which an execution engine will utilately resolve.
+For (2), we model as a diversification problem. 
+By picking a given pipeline a prirori, we are putting our full faith that this pipeline is accurate.
+Instead, we propose a pipeline optimization algorithm called Ensemble of Sampled Pipelines (ESP), which is a Monte-Carlo algorithm that in effect hedges its bets on multiple randomly sampled pipelines.
+ESP runs many randomly sampled sequences of of the operators to build a graph of transitive relationships, then it takes the union of this graph, and applies correlation clustering to enforce transitivity within cluster.
+
+The intuition is that a taking consensus of random orderings and enforcing transitivity prevent any particular bad operator combination from having an undue effect on results.  
+We implement this algorithm as an API in SampleClean which is built upon Spark 1.1.
+
+
+
+
+
+
+
+

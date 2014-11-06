@@ -1,0 +1,96 @@
+\section{Background}
+
+\subsection{Entity Resolution}
+The entity resolution (ER) problem [cite] is the study of linking database records to real-world entities.
+While traditionally, the operation only discusses the final step of duplicate record linkage [cite], there are often
+many pre-processing steps such as string processing and imputation that are often run before record linkage.
+
+We formalize this problem as a composition of two functional operations: deduplication and correction.
+\begin{definition} Entity Resolution. 
+An Entity Resolution task (ER) for a relation $R$ is a composition of the 
+following deterministic operations:
+\begin{itemize}
+\item Correct $\kappa(R_i,a_{1})$ which for each record in $R_i$ returns a new record with attribute $a_{1}$ modified.
+\item Deduplication $\delta(R_i)$ for each record in $R_i$ returns a new record such that the new record is contained in $R_i$.
+\end{itemize}
+%We constrain that $\kappa$ and $\delta$ are consistent; that is given two records that are identical on the projection their operation is identical.
+\end{definition}
+
+In the introduction, we wanted to get a count of distinct Mediterranian restaurants in Berkeley.
+The labeling task is a correction and the deduplication task is the removal of duplicate entities.
+An entity resolution pipeline is a unordered collection of data cleaning operations that are either corrections or
+deduplications.
+
+\subsection{Transitivity Errors Are Common When Using Heuristics}
+The problems with transitivity are fundemental to the use of heuristics and not just when they are pipelined.
+Let us explore and motivate some of these problems in a limited setting.
+We can present a simplified formulation of the problem to better understand the challenges.
+A special case of the general ER problem posed above is deduplication in a string-valued single attribute projection.
+In this case, we are applying some deduplication algorithm that can only merge strings in set.
+With the constraints above, we may find that string $a$ merges to string $b$, and $b$ merges to $c$. 
+This would imply a linkage between $a$ and $c$; which is missing.
+
+\subsection{SampleCleanPipeline Basic API}
+In SampleClean [cite], we proposed using sampling to scale data cleaning to large datasets.
+Instead of cleaning an entire dataset, we applied an expensive data cleaning algorithm to a sample, then 
+answer queries using the clean sample.
+This allowed for previously prohibitively expensive techniques (eg. crowdsourcing) to still estimate results
+on large datasets.
+
+We implemented SampleClean as an application on the BDAS stack.
+This application contains a library of data cleaning techniques, and an API to specify new data cleaning algorithms.
+The main component of this library is the \scp class.
+This class abstracts the management of execution of data cleaning operations away from the user.
+
+Users define an ordered collection of data cleaning algorithms eg. time format cleaning, nearest neighbor imputation, and jaccard similarity deduplication.
+Then, they define a series of hints of which constrain possible orders
+of the data cleaning algorithms, eg. run Algo1 before Algo2, run Algo2 last.
+As in the examples, hints can be of the form of partial orders and absolute indices.
+
+Once the pipeline is instantiated, there is an \textbf{optimize()} method which
+translates the unordered collection and hints into an execution plan.
+Then the \textbf{exec(sampleName)} method applies the pipeline to a sample.
+
+\begin{lstlisting}
+SampleCleanPipeline( 
+  ops: Collection[SampleCleanAlgorithm],
+  hints: List[Hints] 
+) 
+
+
+sample_clean_pipeline.optimize()
+
+sample_clean_pipeline.exec("my_sample")
+\end{lstlisting}
+
+In this paper, we explore the final two steps, \textbf{optimize()} and \textbf{exec(sampleName)}, 
+for a limited set of operators (ER operators).
+
+The goal of SampleClean was to make data cleaning happen at interactive latencies. 
+If EPS takes a long time to run this defeats the purpose of the system.
+We also extend the API to the streaming case where partial results can stream back to the user.
+
+\begin{lstlisting}
+sample_clean_pipeline.stream_exec(
+  "my_sample", 
+  optimizer,
+  onChangeCallback)
+\end{lstlisting}
+
+\subsubsection{Problem Statement}
+We are given a collection of ER operators and hints that define partial orders and absolute indices.
+The EPS algorithm has to output two things: (1) A data structure $T$ which represents an optimized plan (which call a \emph{proposal}), and
+(2) translate $T$ into actual changes to the tuples in the sample.
+For the streaming case, we define an incomplete optimization structure $T_k$ and an execution engine which updates its executions when the data
+structure is updated $T_{k+1}\leftarrow T_k$. 
+
+
+
+
+
+
+
+
+
+
+
