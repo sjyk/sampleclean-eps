@@ -26,6 +26,15 @@
 \usepackage{bm}
 \usepackage[nospace]{cite}
 
+
+\usepackage[algoruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{xcolor}
+\newcommand\mycommfont[1]{\scriptsize\ttfamily\textcolor{blue}{#1}}
+\SetCommentSty{mycommfont}
+\SetKwFor{ParForAll}{for}{do in parallel}{end}
+\SetKw{WaitUntil}{wait until}
+
+
 \lstset{basicstyle=\scriptsize,breaklines=true}
 
 \linespread{0.94}%
