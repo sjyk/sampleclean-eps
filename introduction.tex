@@ -23,7 +23,7 @@ In this paper, we aim to study the robustness of these pipelines and techniques 
 We focus our study on an important subclass of data cleaning pipeline problems: entity resolution (ER) \cite{DBLP:journals/pvldb/KopckeTR10, conf/dmkd/MongeE97, conf/sigmod/WhangMKTG09, conf/acl/FinkelM08, conf/sigmod/WangLF12, Fellegi1969, conf/sigmod/ArasuGK10, DBLP:journals/tkde/ElmagarmidIV07, journals/tkde/Christen11}. 
 In these problems, for every record we want to find a single canonical mapping between the records and the real world.
 Formally, every record in the clean relation $R_c$ there is a one-to-one mapping with some real world entity.
-Typically, ER algorithms build a graph of linked candidate records (\emph{entity graph}) and apply a graph clustering algorithm to resolve groups of records that refer to the same entity.
+A popular class of ER algorithms build a graph of linked candidate records (\emph{entity graph}) \cite{wang1999sample} and apply a graph clustering algorithm to resolve groups of records that refer to the same entity.
 
 In a traditional ER workflow, all pairs of records are heuristically matched with some measure of similarity (eg. Jaccard similarity for string-valued attributes).
 When applying heuristics to construct an entity graph, there are two types of errors: false-positives and false-negatives. 
