@@ -2,58 +2,60 @@
 Decision making is increasingly data-driven and this has catalyzed an immense research interest in large scale analytical query processing.
 However, large datasets can be prone to error \cite{Gartner}, and data cleaning has been studied to mitigate query error on dirty data \cite{dasu2003exploratory, mayfield2010eracer, openrefine, wrangler, DBLP:conf/sigmod/DallachiesaEEEIOT13, DBLP:conf/pervasive/JefferyAFHW06}.
 %When querying dirty data, the speed of the query processing engine does not matter if the results are erroneous.
-In many cases, data cleaning is one of the most expensive and crucial steps in a data analysis workflow.
+In many cases, data cleaning is one of the most crucial steps in a data analysis workflow.
 Cleaning and transforming data is the often first step \emph{before} any analysis such as machine learning can even begin.
 
-A typical use case often requires a sequence of data cleaning operations 
+A typical application often requires a sequence of data cleaning operations 
 such as imputation, string formatting, \emph{and} record linkage.
 Some of these operations are routine and can be even abstracted into a data cleaning library.
 In the SampleClean project \cite{wang1999sample}, we built a distributed query engine that combined approximate analytics query processing 
 and a library of data cleaning operations.
-One of the goals of this probject was to build a declarative interface for data cleaning, where users specify what types of errors
+One of the goals of this project was to build a declarative interface for data cleaning, where users specify what types of errors
 occured in their dataset (eg. duplicates and missing values) and the SampleClean framework would optimally execute the necessary libary routines.
-We call these sequences of data cleaning operations \emph{pipelines}, and in this paper, we aim to study the robustness of these pipelines.
+We call these sequences of data cleaning operations \emph{pipelines}.
 
 The key difficulty in reasoning about \emph{pipelines} is that all of thse operations are in effect heuristics with some precision and recall characteristics.
-Pipelining heuristic operations is by nature an uncertain process; drawing a stark contrast to the traditional query optimization setting where correctness can be formalized in terms of confluence or serializability [cite]. 
+Pipelining heuristic operations is by nature an uncertain process; drawing a stark contrast to the traditional query optimization setting where correctness can be formalized in terms of confluence or serializability. 
 We found that pipelines were often very brittle and small changes in the order-of-operations could have very significant impact on results.
 To get reliable results we had to specify these operations and their ordering very precisely, which is in opposition to the goal of building a declarative data cleaning interface.
 
+In this paper, we aim to study the robustness of these pipelines and techniques which can allow for more reliable execution.
 We focus our study on an important subclass of data cleaning pipeline problems: entity resolution (ER) \cite{DBLP:journals/pvldb/KopckeTR10, conf/dmkd/MongeE97, conf/sigmod/WhangMKTG09, conf/acl/FinkelM08, conf/sigmod/WangLF12, Fellegi1969, conf/sigmod/ArasuGK10, DBLP:journals/tkde/ElmagarmidIV07, journals/tkde/Christen11}. 
 In these problems, for every record we want to find a single canonical mapping between the records and the real world.
 Formally, every record in the clean relation $R_c$ there is a one-to-one mapping with some real world entity.
-Typically, ER algorithms build a graph of linked candidate records and apply a graph clustering algorithm to resolve groups of records that refer to the same entity.
+Typically, ER algorithms build a graph of linked candidate records (\emph{entity graph}) and apply a graph clustering algorithm to resolve groups of records that refer to the same entity.
+
+In a traditional ER workflow, all pairs of records are heuristically matched with some measure of similarity (eg. Jaccard similarity for string-valued attributes).
+When applying heuristics to construct an entity graph, there are two types of errors: false-positives and false-negatives. 
+In the false-positive case, an edge linking two records is spuriously added. 
+In the false-negative case, a necessary edge is missing. 
 For scalability, these graphs are often made very sparse.
+A dense graph could may require $O(N^2)$ space making it impractical for a large number of records.
+To cope with this problem heuristics are usually designed to be conservative avoiding the false-positive case.
+This makes the graphs very sparse and also allows flexibility to apply coarser-grained clustering.
 
-However, there are two key recent results that suggest changing the way in which we approach ER: (1) the combination of sampling and data cleaning \cite{wang1999sample}, and (2) improved parallel graph segmentation algorithms [cite]. 
+With this challenge in mind, there are two key recent results that present an opportunity to change the way in which we approach ER: (1) the combination of sampling and data cleaning \cite{wang1999sample}, and (2) improved parallel graph segmentation algorithms [cite]. 
 In SampleClean, we showed that applying data cleaning to a sample of data was sufficient to answer many non-selective aggregate queries with high accuracy. We have also been working on parallel correlation clustering graph algorithms which can cluster graphs with millions of vertices in seconds [cite].
-We see these two developments as an opportunity to address the ER problem with much larger, denser entity graphs, and we use the dense graphs as a tool for increased robustness.
+With the conjunction of these two techniques, we can support much larger and denser entity graphs.
 
-We leverage these recent results to take a broader view of entity resolution.
-ER in its typical formulation requires merging duplicate records that map to the same entity.
-To this task, we add the following operations fixing the attributes of the record so they accurately reflect the entity, and accurately filling in missing attributes.
+We first take a broader view of entity resolution.
+ER in its typical formulation requires merging duplicate records that map to the same entity; which in reality is only the last step of a typical data cleaning workflow.
+To this task effective, we often have to start by fixing the attributes of the record so they accurately reflect the entity, and accurately filling in missing attributes.
 Linking back to our discussions of \emph{pipelines}, each ER task requires a sequence of duplication and attribute correction operations.
-Our key insight is that we can represent the entire end-to-end task as a single graph, which also encapsulates the lineage of a tuple through the pipeline--not just the deduplication.
-This end-to-end model can lead to more robust detection of missing edges in the graph to to heurstic algorithms.
+Every record then has a history of changes as it progresses through the pipeline and contribution (1) of this paper is exploring the benefits of exposing this history to data cleaning operators.
+For example, perhaps an earlier version of a tuple is easier to link to a later version of another.
 
-However, one problem with this model is that it could lead to many false positive edges.
-We address this through randomization.
-We execute the pipeline in random permutations of the operations.
-Each execution has its own graphical model, and we take the union of the graphs.
-Edges and vertices that exists in multiple graphs are weighted more highly; which is valuable information when we want to cluster this graph.
-
-The intuition for robustness is clear, by picking a single sequence before hand, we are putting our full faith that this pipeline is the best one.
-Instead, we propose a pipeline optimization algorithm called Ensemble of Sampled Pipelines (ESP), which is a Monte-Carlo algorithm that in effect hedges its bets on multiple randomly sampled pipelines.
+Contribution (2) addresses the problem of the heuristic nature of the pipeline.
+Instead of picking a set optimal order before execution, we execute random permutations of the pipeline.
+We use these random executions to find linked tuples that stay linked across different permutations of the pipeline.
 However, one challenge is that all of these random samples have to be executed completely before results can be presented to users.
-We propose a streaming variant of the correlation clustering algorithm that allows users to see the results update as more random pipelines are executed.
+Contribution (3) of this works is a streaming variant of the correlation clustering algorithm that allows users to see the results update as more random pipelines are executed.
 
-Our main contributions are:
-\begin{itemize}
-\item An API to specify entity resolution subtasks including duplication and attribute correction, and pipeline these operations.
-\item A framework for turning the execution of a pipeline into a single graphical model which we call a \emph{proposal}.
-\item A randomized sampling from the set of pipelines (which can be constrained by user ``hints" about ordering) which takes a union of the proposal graphs.
-\item A parallel, streaming correlation clustering approach to allow results to update as more executions of the randomized pipelines complete. 
-\end{itemize}
+We call this entire approach ESP (Ensemble of Sample Pipelines), and we evaluate this on real and synthetic datasets.
+We also implement this framework in a distributed setting with Spark 1.1 and GraphX.
+On three ER datasets, a product dataset, a restaurant dataset, and a dataset of papers fro MS Academic Search, 
+our results suggest that ESP outperforms the graph-based algorithm in\cite{wang2012crowder}, is also competitive with single best pipeline, and outperforms the worst pipeline.
+While, not always better than the optimal choice of pipeline single ESP ensures that the result is never too bad.
 
 
 
