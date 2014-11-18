@@ -16,19 +16,28 @@ following deterministic operations:
 %We constrain that $\kappa$ and $\delta$ are consistent; that is given two records that are identical on the projection their operation is identical.
 \end{definition}
 
-In the introduction, we wanted to get a count of distinct Mediterranian restaurants in Berkeley.
-The labeling task is a correction and the deduplication task is the removal of duplicate entities.
-An entity resolution pipeline is a unordered collection of data cleaning operations that are either corrections or
-deduplications.
+To make this more concrete, consider the following scenario. 
+Suppose we want to count the number of Mediterranian restaurants in Berkeley, and 
+our dataset is of the following schema: \textbf{Restaurant(Name, Type, City)}.
+This dataset contains duplicates (two records that point to the same real world entity) and missing type labels.
+To fill in the missing type labels we can train a classifier on those labels that do exist and predict a label from the features of the restaurant name $\kappa$.
+The operation that merges two records that refer to the same restaurant is a $\delta$ operation.
 
 \subsection{Transitivity Errors Are Common When Using Heuristics}
-The problems with transitivity are fundemental to the use of heuristics and not just when they are pipelined.
-Let us explore and motivate some of these problems in a limited setting.
-We can present a simplified formulation of the problem to better understand the challenges.
-A special case of the general ER problem posed above is deduplication in a string-valued single attribute projection.
-In this case, we are applying some deduplication algorithm that can only merge strings in set.
-With the constraints above, we may find that string $a$ merges to string $b$, and $b$ merges to $c$. 
+Let us explore one type of error that can happen when $\delta$ and $\kappa$ are heuristics.
+We can present a simplified problem to better understand the challenges.
+A special case of the general ER problem posed above is ER on a string-valued single attribute.
+
+The first problem is a false-negative problem.
+We may find that string $a$ merges to string $b$, and $b$ merges to $c$. 
 This would imply a linkage between $a$ and $c$; which is missing.
+Our algorithmic challenge then is to find as many of these missing edges.
+We argue that some of these edges can be discovered by making the graph more dense 
+by also looking at the prior history of transformations that happened to the string (which we will discuss in the next section).
+
+Conversely, another problem that can happen is spurious edges.
+$a$ and $b$ are linked when in reality they are two seperate entities.
+In this case, the random permutations find and more highly weight those edges that are invariant to perumutation of operations.
 
 \subsection{SampleCleanPipeline Basic API}
 In SampleClean [cite], we proposed using sampling to scale data cleaning to large datasets.
