@@ -17,7 +17,7 @@ following deterministic operations:
 \end{definition}
 
 To make this more concrete, consider the following scenario. 
-Suppose we want to count the number of Mediterranian restaurants in Berkeley, and 
+Suppose we want to count the number of Mediterranean restaurants in the city of Berkeley, and 
 our dataset is of the following schema: \textbf{Restaurant(Name, Type, City)}.
 This dataset contains duplicates (two records that point to the same real world entity) and missing type labels.
 To fill in the missing type labels we can train a classifier on those labels that do exist and predict a label from the features of the restaurant name $\kappa$.
@@ -36,8 +36,8 @@ We argue that some of these edges can be discovered by making the graph more den
 by also looking at the prior history of transformations that happened to the string (which we will discuss in the next section).
 
 Conversely, another problem that can happen is spurious edges.
-$a$ and $b$ are linked when in reality they are two seperate entities.
-In this case, the random permutations find and more highly weight those edges that are invariant to perumutation of operations.
+$a$ and $b$ are linked when in reality they are two separate entities.
+In this case, the random permutations find and more highly weight those edges that are invariant to the permutation of operations.
 
 \subsection{SampleCleanPipeline Basic API}
 In SampleClean [cite], we proposed using sampling to scale data cleaning to large datasets.
@@ -51,9 +51,9 @@ This application contains a library of data cleaning techniques, and an API to s
 The main component of this library is the \scp class.
 This class abstracts the management of execution of data cleaning operations away from the user.
 
-Users define an ordered collection of data cleaning algorithms eg. time format cleaning, nearest neighbor imputation, and jaccard similarity deduplication.
+Users define an ordered collection of data cleaning algorithms e.g. time format cleaning, nearest neighbor imputation, and Jaccard similarity deduplication.
 Then, they define a series of hints of which constrain possible orders
-of the data cleaning algorithms, eg. run Algo1 before Algo2, run Algo2 last.
+of the data cleaning algorithms, e.g. run Algo1 before Algo2, run Algo2 last.
 As in the examples, hints can be of the form of partial orders and absolute indices.
 
 Once the pipeline is instantiated, there is an \textbf{optimize()} method which

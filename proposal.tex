@@ -32,7 +32,7 @@ Records in the database are represented as vertices, and proposed corrections/me
 \end{definition}
 
 The end of a given pipeline will be a graph $G$. 
-This graph structure is a generalization of the graph structure discussed in entity resolution [cite]; ie the graph in an open world model.
+This graph structure is a generalization of the graph structure discussed in entity resolution [cite]; i.e. the graph in an open world model.
 
 \subsection{Proposal API}
 \reminder{TODO}
@@ -47,7 +47,7 @@ For example, an operation might be correct for 80\% of records and give incorrec
 The practical implications of this structure are interesting. 
 For example, in ER pipelines, we often have to make many decisions up front such as what string tokenizer to use, how to threshold heuristics, or how dates should be formatted.
 In this model, with the proposal structure, we argue why not try all of them.
-Obviously there is a tradeoff space between ER accuracy and performance, and we will discuss that more in the next section.
+Obviously there is a trade-off space between ER accuracy and performance, and we will discuss that more in the next section.
 
 \subsection{Proposal Overhead}
 The proposal framework introduces overhead as the graph $G$ is much larger in terms of both edges and vertices than typically considered in graph based ER tasks. 

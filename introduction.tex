@@ -1,9 +1,9 @@
 \section{Introduction}
-Decision making is increasingly data-driven and this has catalyzed an immense research interest in large scale analytical query processing.
+Decision making has become an increasingly data-driven endeavour which has catalyzed an immense research interest in large scale analytical query processing.
 However, large datasets can be prone to error \cite{Gartner}, and data cleaning has been studied to mitigate query error on dirty data \cite{dasu2003exploratory, mayfield2010eracer, openrefine, wrangler, DBLP:conf/sigmod/DallachiesaEEEIOT13, DBLP:conf/pervasive/JefferyAFHW06}.
 %When querying dirty data, the speed of the query processing engine does not matter if the results are erroneous.
 In many cases, data cleaning is one of the most crucial steps in a data analysis workflow.
-Cleaning and transforming data is the often first step \emph{before} any analysis such as machine learning can even begin.
+Cleaning and transforming data is often the first step \emph{before} any analysis and machine learning can even begin.
 
 A typical application often requires a sequence of data cleaning operations 
 such as imputation, string formatting, \emph{and} record linkage.
@@ -11,10 +11,10 @@ Some of these operations are routine and can be even abstracted into a data clea
 In the SampleClean project \cite{wang1999sample}, we built a distributed query engine that combined approximate analytics query processing 
 and a library of data cleaning operations.
 One of the goals of this project was to build a declarative interface for data cleaning, where users specify what types of errors
-occured in their dataset (eg. duplicates and missing values) and the SampleClean framework would optimally execute the necessary libary routines.
+occurred in their dataset (e.g. duplication and missing values) and the SampleClean framework would optimally execute the necessary library routines.
 We call these sequences of data cleaning operations \emph{pipelines}.
 
-The key difficulty in reasoning about \emph{pipelines} is that all of thse operations are in effect heuristics with some precision and recall characteristics.
+The key difficulty in reasoning about the \emph{pipelines} is that all of these operations are in effect heuristics with some precision and recall characteristics.
 Pipelining heuristic operations is by nature an uncertain process; drawing a stark contrast to the traditional query optimization setting where correctness can be formalized in terms of confluence or serializability. 
 We found that pipelines were often very brittle and small changes in the order-of-operations could have very significant impact on results.
 To get reliable results we had to specify these operations and their ordering very precisely, which is in opposition to the goal of building a declarative data cleaning interface.
