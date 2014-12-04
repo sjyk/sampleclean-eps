@@ -1,99 +1,12 @@
 \section{Background}
+In this section, we review the existing theoretical models for ER and 
+discuss our extensions.
 
-\subsection{Entity Resolution}
-The entity resolution (ER) problem [cite] is the study of linking database records to real-world entities.
-While traditionally, the operation only discusses the final step of duplicate record linkage [cite], there are often
-many pre-processing steps such as string processing and imputation that are often run before record linkage.
+\subsection{CFD ER Model}
 
-We formalize this problem as a composition of two functional operations: deduplication and correction.
-\begin{definition} Entity Resolution. 
-An Entity Resolution task (ER) for a relation $R$ is a composition of the 
-following deterministic operations:
-\begin{itemize}
-\item Correct $\kappa(R_i,a_{1})$ which for each record in $R_i$ returns a new record with attribute $a_{1}$ modified.
-\item Deduplication $\delta(R_i)$ for each record in $R_i$ returns a new record such that the new record is contained in $R_i$.
-\end{itemize}
-%We constrain that $\kappa$ and $\delta$ are consistent; that is given two records that are identical on the projection their operation is identical.
-\end{definition}
+\subsection{SampleClean Algebraic ER Model}
 
-To make this more concrete, consider the following scenario. 
-Suppose we want to count the number of Mediterranean restaurants in the city of Berkeley, and 
-our dataset is of the following schema: \textbf{Restaurant(Name, Type, City)}.
-This dataset contains duplicates (two records that point to the same real world entity) and missing type labels.
-To fill in the missing type labels we can train a classifier on those labels that do exist and predict a label from the features of the restaurant name $\kappa$.
-The operation that merges two records that refer to the same restaurant is a $\delta$ operation.
-
-\subsection{Transitivity Errors Are Common When Using Heuristics}
-Let us explore one type of error that can happen when $\delta$ and $\kappa$ are heuristics.
-We can present a simplified problem to better understand the challenges.
-A special case of the general ER problem posed above is ER on a string-valued single attribute.
-
-The first problem is a false-negative problem.
-We may find that string $a$ merges to string $b$, and $b$ merges to $c$. 
-This would imply a linkage between $a$ and $c$; which is missing.
-Our algorithmic challenge then is to find as many of these missing edges.
-We argue that some of these edges can be discovered by making the graph more dense 
-by also looking at the prior history of transformations that happened to the string (which we will discuss in the next section).
-
-Conversely, another problem that can happen is spurious edges.
-$a$ and $b$ are linked when in reality they are two separate entities.
-In this case, the random permutations find and more highly weight those edges that are invariant to the permutation of operations.
-
-\subsection{SampleCleanPipeline Basic API}
-In SampleClean [cite], we proposed using sampling to scale data cleaning to large datasets.
-Instead of cleaning an entire dataset, we applied an expensive data cleaning algorithm to a sample, then 
-answer queries using the clean sample.
-This allowed for previously prohibitively expensive techniques (eg. crowdsourcing) to still estimate results
-on large datasets.
-
-We implemented SampleClean as an application on the BDAS stack.
-This application contains a library of data cleaning techniques, and an API to specify new data cleaning algorithms.
-The main component of this library is the \scp class.
-This class abstracts the management of execution of data cleaning operations away from the user.
-
-Users define an ordered collection of data cleaning algorithms e.g. time format cleaning, nearest neighbor imputation, and Jaccard similarity deduplication.
-Then, they define a series of hints of which constrain possible orders
-of the data cleaning algorithms, e.g. run Algo1 before Algo2, run Algo2 last.
-As in the examples, hints can be of the form of partial orders and absolute indices.
-
-Once the pipeline is instantiated, there is an \textbf{optimize()} method which
-translates the unordered collection and hints into an execution plan.
-Then the \textbf{exec(sampleName)} method applies the pipeline to a sample.
-
-\begin{lstlisting}
-SampleCleanPipeline( 
-  ops: Collection[SampleCleanAlgorithm],
-  hints: List[Hints] 
-) 
-
-
-sample_clean_pipeline.optimize()
-
-sample_clean_pipeline.exec("my_sample")
-\end{lstlisting}
-
-In this paper, we explore the final two steps, \textbf{optimize()} and \textbf{exec(sampleName)}, 
-for a limited set of operators (ER operators).
-
-The goal of SampleClean was to make data cleaning happen at interactive latencies. 
-If EPS takes a long time to run this defeats the purpose of the system.
-We also extend the API to the streaming case where partial results can stream back to the user.
-
-\begin{lstlisting}
-sample_clean_pipeline.stream_exec(
-  "my_sample", 
-  optimizer,
-  onChangeCallback)
-\end{lstlisting}
-
-\subsubsection{Problem Statement}
-We are given a collection of ER operators and hints that define partial orders and absolute indices.
-The EPS algorithm has to output two things: (1) A data structure $T$ which represents an optimized plan (which call a \emph{proposal}), and
-(2) translate $T$ into actual changes to the tuples in the sample.
-For the streaming case, we define an incomplete optimization structure $T_k$ and an execution engine which updates its executions when the data
-structure is updated $T_{k+1}\leftarrow T_k$. 
-
-
+\subsection{Descriptive vs. Prescriptive Cleaning}
 
 
 
