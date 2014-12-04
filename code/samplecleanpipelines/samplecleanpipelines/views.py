@@ -16,8 +16,8 @@ def home(request):
 	#clean1()
 	#resetClean()
 	clean1(1)
-	clean2(2)
-	clean3(3)
+	clean3(2)
+	clean2(3)
 	clean4(4)
 	allString()
 
@@ -30,7 +30,7 @@ def home(request):
 def clearClean():
 	AffiliationClean.objects.all().delete()
 
-def loadDirty(samplesize=100):
+def loadDirty(samplesize=200):
 	affset = Author.objects.filter(Q(affiliation__contains='Stanford') | Q(affiliation__contains='Berkeley')).exclude(affiliation = '[\' \\n\']').values('paperid','affiliation').order_by('?')[:samplesize]
 	for a in affset:
 		b = AffiliationClean(affiliation_dirty = a['affiliation'], affiliation_clean = json.dumps({'~':a['affiliation']}))
@@ -90,7 +90,7 @@ def clean3(kid):
 				p = k[k1][k[k1].find("University"):]
 				if 'of' in p:
 					k[k1+","+str(kid)] = p
-			else:
+			elif k[k1].find("Department") > 0:
 				p = k[k1][:k[k1].find("Department")]
 				k[k1+","+str(kid)] = p
 		
@@ -188,6 +188,8 @@ def allString():
 
 		if '4' in max_heur:
 			a.k4 = True
+
+		print a.affiliation_clean
 
 		a.affiliation_final = max_val.strip()
 		a.affiliation_compare = long_val.strip()
