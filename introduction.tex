@@ -9,10 +9,10 @@ The concept of a functional dependency has been well studied in the database lit
 and was proposed by Codd in 1974 \cite{codd1974recent}.
 Recent work explores encoding ER primitives as types of functional dependencies called Conditional Functional Dependencies (CFD) \cite{bertossi2013data, fan2014interaction, fan2008conditional}.
 These are basically rules that encode unsatisfied constraints based on expert input (i.e NY == New York) and the data cleaning algorithm iterates until these constraints are satisfied.
-As this formulation fits nicely into a Satisfiability-like framework, many theoretical insights have naturally followed such determining the minimal sequence of data changes to satisfy all of the constraints is coNP-Hard. \reminder{SK: todo clarify section}
+As this formulation fits nicely into a Satisfiability-like framework, many theoretical insights have naturally followed such determining the minimal sequence of data changes to satisfy all of the constraints is NP-Hard.
 
-As the coNP-Hard result suggests, while this model gives insights into what types of errors occur in a dataset, there is a challenge of efficiently repairing the errors (i.e. enforcing the constraints).
-Bertossi et al. \cite{bertossi2013data} found that a lattice data structure could be used to a find PTIME iterative algorithm for ER problems with only ``matching" dependencies.
+As the NP-Hard result suggests, while this model gives insights into what types of errors occur in a dataset, there is a challenge of efficiently repairing the errors (i.e. enforcing the constraints).
+Bertossi et al. \cite{bertossi2013data} found that a lattice data structure could be used to a find PTIME iterative algorithm for ER problems with only ``matching" dependencies that fit certain cyclic conditions.
 Wang et al. \cite{wang2014towards} extended the CFD framework with ``fixing" rules; rules that also prescribed fixes which as in Bertossi et al. makes the cleaning algorithms faster and more reliable.
 
 A key assumption of the functional depedency work in data cleaning has been \emph{infallible} rules.
@@ -22,10 +22,10 @@ Furthermore, increasingly data cleaning is part of a larger pipeline including s
 In this setting, semantics on partial or sampled results are important, and the CFD model may not be appropriate to describe these applications.
 
 In this work, we explore robust execution of \emph{pipelines} of data cleaning operations with an application to ER.
-In contrast to prior work, we formalize ER as an algebra over relations as opposed to constraints on tuples in those relations.
-A key piece of this work is a data structure we call a \emph{proposal} which propagates an augemnted intermediate state of the pipeline mitigating some times of errors.
+In contrast to prior work, we formalize ER as a composition of functions on relations as opposed to constraints on tuples in those relations.
 We show that in the case where our operations are \emph{infallible}, our formalization naturally leads to the algorithm proposed by Bertossi et al., and exactly the same result with a connected components algorithm over a graph of linked tuples.
 However, the connected components version is robust to transitivity errors in the rules which correspond to missing edges in the graph.
+We introduce a data structure, which we call a \emph{proposal},  that propagates an augemnted intermediate state of the pipeline mitigating some types of errors.
 We then devise an alternative to the connected components, accounting for spurious edges, using correlation clustering which seperates the graph into components that are approximately cliques.
 Finally, we merge proposal data structures from different executions allowing us to try different permutations of the ER pipeline and take a consensus of their results.
 

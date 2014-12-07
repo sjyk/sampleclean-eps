@@ -17,8 +17,8 @@ def home(request):
 	#resetClean()
 	clean1(1)
 	clean3(2)
-	clean2(3)
-	clean4(4)
+	clean4(3)
+	clean2(4)
 	allString()
 
 	#compressProposal()

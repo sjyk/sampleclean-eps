@@ -2,11 +2,109 @@
 In this section, we review the existing theoretical models for ER and 
 discuss our extensions.
 
-\subsection{CFD ER Model}
+\subsection{Functional Dependency ER Model}
+Fan et al. \cite{fan2008conditional} formalized ER in terms of functional dependency model with two parts: Conditional Functional Dependencies and Matching Dependencies:
+\begin{definition}[Conditional Functional Dependence]
+A Conditional Functional Dependency (CFD) is an equality constraint on tuples in the relations $R$ and $S$
+for all tuples that match a condition $\phi$. 
+In an open world mode, $S$ may be a hypothetical relation.
+\end{definition}
+
+\begin{definition}[Matching Dependency]
+Let $R$ and $S$ be relations. Let $X_r$ be a set of attributes of a tuple in $R$, and $X_s$ be a set of attributes of a tuple in $S$.
+We define the similarity relation, which means that a pair of tuples; one in R and one in S are similar over a set of attributes: \[ R[X_r] \approx S[X_s] \]
+A Matching Dependency (MD) is a constraint that if this pair is similar then the attribute $Y_r$ in R and $Y_s$ in S have to be the same.
+\[ R[X_r] \approx S[X_s] \mapsto R[Y_r] \dot{=} S[Y_s]\]
+\end{definition}
+
+These constraints give a logical way to specify what is wrong with a dataset, and give a mathematical formalization for ER.
+However, transforming the R and S such that they meet the constraint (or minimize disagreement with the constraints) still has to be done.
+We summarize current state of the theory in this model:
+\begin{itemize}
+\item Relations with only MDs can be tractably solved in PTIME, either by assuming certain cyclic structure \cite{bertossi2013data} or implicitly enforcing Armstrong's axioms \cite{fan2011dynamic}.
+\item The state-of-the-art algorithm is an iterate until stability approach \cite{bertossi2013data, fan2011dynamic}
+\item Resolving relations with both CFDs and MDs is NP-Complete and APX-hard \cite{wang2014towards} and requires heuristics.
+\end{itemize}
+
+Analyzing the algorithms in \cite{bertossi2013data, fan2011dynamic} shows that implictly both algorithms simplify the problem by enforcing properties such as transitivity; an acknowledgement that these FD are constructed through heuristics.
+FDs are not suited to express such operations.
+Furthermore, this has the obvious issue of spurious FD's.
+
+The CFD/MD theoretical model and algorithms are in stark contrast to many recent publications in ER.
+Gokhale et al. \cite{gokhale2014corleone} use crowdsourced labeled data to learn rules via Decision Trees to match entities.
+There has been a recent trend to use clustering or classification \cite{getoor2012entity, bhattacharya2007collective}, as opposed to definitive rules.
+Due to the statistical nature of these algorithms, they are more robust uncertain or heuristic transformation of the data prior to application.
 
 \subsection{SampleClean Algebraic ER Model}
+In this paper, we try to shed some light on why the theoretical model for ER based on functional dependencies has been cast aside in favor of clustering-based approaches.
+Our hypothesis is that empirically clustering-based approaches are more robust than the algorithms derived from the functional dependency formulation.
+Functional dependencies have meaningful semantics only when they can be taken as ground truth, however, in practice, these are constructed from heuristics.
 
-\subsection{Descriptive vs. Prescriptive Cleaning}
+\subsubsection{Formalizing ER}
+We look at an alternative algebraic formulation of this problem.
+
+\begin{definition}[Entity Resolution]
+We define two functional operations $\kappa$ and $\delta$.
+They take as input a relation and return as output a new relation.
+
+$\kappa_t$ is a tuple by tuple tranformation of R, but can use the information in the whole relation.
+For a relation $R$, $\kappa$ is defined as:
+\[
+\text{(1)}  R' = \kappa(R) = \cup_{r \in R} \kappa_t(r,R)
+\]
+Where the input of $\kappa_t$ is a tuple and a reference to the whole relation
+and the output is a tuple.
+
+$\delta$ is defined as the deduplication operation.
+For a relation $R$, $\delta$ is defined as:
+\[
+\text{(2)}  R' = \cup_{r \in R} \delta_t(r,R)
+\]
+\[
+\forall r \in R: \delta_t(r,R) \in R
+\]
+The input of $\delta_t$ is a tuple and a reference to the whole relation
+and the output is a tuple.
+That is, it is a tuple level transformation where the range is R (you can only change a tuple to match with another tuple in the relation).
+
+We further require consistency:
+\[
+r_i = r_j \implies \kappa_t(r_i,R) = \kappa_t(r_j,R)
+\]
+\[
+r_i = r_j \implies \delta_t(r_i,R) = \delta_t(r_j,R)
+\]
+
+An ER function is a composition of $\delta$ and $\kappa$ operations.
+\end{definition}
+
+It is worth noting that our algebraic model is different from the FD model from a user perspective.
+In our algebraic model, users have to specify ER operations in terms of transformations and not in terms of assertions on the data.
+
+\subsubsection{Algebra Over Operations}
+We also look at an algebra over the family of transformations $\kappa$ and $\delta$.
+We model relations as a semiring:
+\[ <\mathcal{R}, +, *, 1>\]
+Where $+$ is the union operator, $*$ is the natural join, $1$ is the empty relation.
+
+In this model, we can define:
+\[
+\kappa_1(R) + \kappa_2(R) = \kappa_1(R) \cup \kappa_2(R)
+\]
+\[
+\delta _1(R) + \delta_2(R) = \delta_1(R) \cup \delta_2(R)
+\]
+\[
+\kappa_1(R) * \kappa_2(R) = \kappa_1(R) \bowtie \kappa_2(R)
+\]
+\[
+\delta_1(R) * \delta_2(R) = \delta_1(R) \bowtie \delta_2(R)
+\]
+
+In later sections, we will also use metric space semantics to describe convergence.
+We define the distance between two relations to be the cardinality of the union minus the cardinality of the intersection:
+\[ d:\mathcal{R} \times \mathcal{S} \mapsto \mid R \cup S \mid - \mid R \cap S \mid\]
+
 
 
 
