@@ -83,27 +83,7 @@ In our algebraic model, users have to specify ER operations in terms of transfor
 
 \subsubsection{Algebra Over Operations}
 We also look at an algebra over the family of transformations $\kappa$ and $\delta$.
-We model relations as a semiring:
-\[ <\mathcal{R}, +, *, 1>\]
-Where $+$ is the union operator, $*$ is the natural join, $1$ is the empty relation.
-
-In this model, we can define:
-\[
-\kappa_1(R) + \kappa_2(R) = \kappa_1(R) \cup \kappa_2(R)
-\]
-\[
-\delta _1(R) + \delta_2(R) = \delta_1(R) \cup \delta_2(R)
-\]
-\[
-\kappa_1(R) * \kappa_2(R) = \kappa_1(R) \bowtie \kappa_2(R)
-\]
-\[
-\delta_1(R) * \delta_2(R) = \delta_1(R) \bowtie \delta_2(R)
-\]
-
-In later sections, we will also use metric space semantics to describe convergence.
-We define the distance between two relations to be the cardinality of the union minus the cardinality of the intersection:
-\[ d:\mathcal{R} \times \mathcal{S} \mapsto \mid R \cup S \mid - \mid R \cap S \mid\]
+We define this family in terms of a monoid with function composition as its binary operation.
 
 
 
